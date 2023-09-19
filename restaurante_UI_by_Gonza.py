@@ -419,7 +419,7 @@ class main_menu(): # Menu para crear o seleccionar distribucion
                     }
         
         self.ventana = Tk()
-        self.ventana.title("Crear configuracion")
+        self.ventana.title("Inicio")
         self.ventana.config(bg = "gray")
         self.ventana.geometry(f"{ancho}x{alto}")
         
@@ -470,6 +470,8 @@ class menu_configuraciones(): # menu para seleccionar configuraciones
         
         self.leer()
         
+        self.lista = []
+
         self.ancho = 500
         self.alto = 400
         self.des = 15
@@ -481,10 +483,8 @@ class menu_configuraciones(): # menu para seleccionar configuraciones
                     "cajas" :	{}
                     }
         
-        self.lista = []
-        
         self.ventana = Tk()
-        self.ventana.title("Crear configuracion")
+        self.ventana.title("Elegir configuracion")
         self.ventana.config(bg = "gray")
         self.ventana.geometry(f"{self.ancho}x{self.alto}")
         
@@ -499,11 +499,160 @@ class menu_configuraciones(): # menu para seleccionar configuraciones
         self.ventana.mainloop()
 
     def ok(self): #=====================================================================================================================================
+        
+        if not self.combo.get() == "":
 
-        self.ventana.destroy()
+            global distribucion, nombre 
+
+            nombre = self.combo.get()
+            distribucion = self.configuraciones[self.combo.get()]["distribucion"]
+
+            self.ventana.destroy()
+            menu_aplicacion()
+
+
+
+class menu_aplicacion():
+
+    def __init__(self):
+
+        self.ancho = 550
+        self.alto = 400
+        self.des = 5
+        self.grosor = 40
+        
+
+
+        self.tks = 	{
+                    "botones" : {},
+                    "labels" :	{}, 
+                    "cajas" :	{}
+                    }
+        
+        print(distribucion)
+
+        self.ventana = Tk()
+        self.ventana.title(F"Menu ({nombre})")
+        self.ventana.config(bg = "gray")
+        self.ventana.geometry(f"{self.ancho}x{self.alto}")
+
+        self.botones = 0
+
+        self.tks["botones"]["Mesas"] = tk.Button(self.ventana,text="Mesas",command = "")
+        self.tks["botones"]["Mesas"].config(bg = "antiquewhite2", fg = "black", activebackground = "antiquewhite2",activeforeground = "black")
+        self.tks["botones"]["Mesas"].place(x = self.des, y = self.des+(self.des+self.grosor)*self.botones, width = 120,height= self.grosor)
+        self.botones += 1
+        self.tks["botones"]["Mozos"] = tk.Button(self.ventana,text="Mozos",command = "")
+        self.tks["botones"]["Mozos"].config(bg = "antiquewhite2", fg = "black", activebackground = "antiquewhite2",activeforeground = "black")
+        self.tks["botones"]["Mozos"].place(x = self.des, y = self.des+(self.des+self.grosor)*self.botones, width = 120,height= self.grosor)
+        self.botones += 1
+        self.tks["botones"]["Pedidos"] = tk.Button(self.ventana,text="Pedidos",command = "")
+        self.tks["botones"]["Pedidos"].config(bg = "antiquewhite2", fg = "black", activebackground = "antiquewhite2",activeforeground = "black")
+        self.tks["botones"]["Pedidos"].place(x = self.des, y = self.des+(self.des+self.grosor)*self.botones, width = 120,height= self.grosor)
+        self.botones += 1
+        self.tks["botones"]["cuentas"] = tk.Button(self.ventana,text="Cuentas",command = "")
+        self.tks["botones"]["cuentas"].config(bg = "antiquewhite2", fg = "black", activebackground = "antiquewhite2",activeforeground = "black")
+        self.tks["botones"]["cuentas"].place(x = self.des, y = self.des+(self.des+self.grosor)*self.botones, width = 120,height= self.grosor)
+        self.botones += 1
+        self.tks["botones"]["configuracion"] = tk.Button(self.ventana,text="Configuracion",command = "")
+        self.tks["botones"]["configuracion"].config(bg = "antiquewhite2", fg = "black", activebackground = "antiquewhite2",activeforeground = "black")
+        self.tks["botones"]["configuracion"].place(x = self.des, y = self.des+(self.des+self.grosor)*self.botones, width = 120,height= self.grosor)
+        self.botones += 1
+        self.tks["botones"]["Salir"] = tk.Button(self.ventana,text="Salir",command = salir)
+        self.tks["botones"]["Salir"].config(bg = "antiquewhite2", fg = "black", activebackground = "antiquewhite2",activeforeground = "black")
+        self.tks["botones"]["Salir"].place(x = self.des, y = self.des+(self.des+self.grosor)*self.botones, width = 120,height= self.grosor)
+       
+        self.girar = True
+
+        self.crear_listboxes()
+    
+        self.scrollbar.config(command=lambda *args: [self.listbox.yview(*args) for self.listbox in self.listboxes])
+        #self.scrollbar.bind("<MouseWheel>", bloquear_scroll)
+        self.scrollbar.place(x=120+ self.des*3+self.recorrido, y=self.des, height=(self.des+self.grosor)*(self.botones+1)-self.des)
+        #self.scrollbar.place(x=120+ self.des*3+self.recorrido, y=self.des*2+(self.grosor-10), height=(self.des+self.grosor)*self.botones-self.des+10)
+
+        self.ventana.mainloop()
+
+    def crear_listboxes(self): # Crea las listboxes, los botones para ordenarlas y la scrolbar
+
+        self.mesas = []
+        numero = 1
+        for dis in distribucion:
+            for mesa in range(int(dis["cantidad"])):
+
+                self.mesas.append([numero,dis["nombre"],dis["silla"],dis["mesa"],"Libre", "Juan"])
+                numero += 1
+        self.total_datos = len(self.mesas[0]) 
+
+        self.ordenar()
+
+        print(self.mesas_datos)
+
+        self.scrollbar = ttk.Scrollbar(self.ventana,orient=tk.VERTICAL)
+        
+        # Se establecen los datos que van a haber y sus tamaños (se pueden agregar datos perfectamente)
+        tipo = ("N°","tipo","sillas","mesas","estado","mozo")
+        tamaño = (30,100,50,50,50,70)
+        self.recorrido = 0
+        self.listboxes = []
+        
+
+        def bloquear_scroll(event):
+            # Evita que el evento de rueda del mouse se propague
+            return "break"
+
+        for i in range(self.total_datos): #crea todas las listboxe, segun la totalidad de datos
+            self.listbox = tk.Listbox(self.ventana, yscrollcommand=self.scrollbar.set, justify=tk.CENTER)
+            self.listbox.pack()
+            self.listbox.place(x=120+ self.des*2+self.recorrido, y=self.des*2+(self.grosor-10), width=tamaño[i], height=(self.des+self.grosor)*self.botones-self.des+10)
+            self.listbox.delete(0, "end")
+            self.listbox.insert(tk.END, *self.mesas_datos[i])
+            self.listbox.bind("<MouseWheel>", bloquear_scroll)  # Bloquear la rueda del mouse en la lista
+            self.listboxes.append(self.listbox)
+            
+
+            self.tks["botones"][f"orden_{tipo[i]}"] = tk.Button(self.ventana,text=tipo[i].capitalize(),command = functools.partial(self.ordenar,i))
+            self.tks["botones"][f"orden_{tipo[i]}"].config(bg = "chartreuse3", fg = "black", activebackground = "chartreuse3",activeforeground = "black")
+            self.tks["botones"][f"orden_{tipo[i]}"].place(x = 120+ self.des*2+self.recorrido, y = self.des, width = tamaño[i],height= (self.grosor-10))
+
+            self.recorrido += tamaño[i]
+            
+    def orden(self,e): #funcion para que sort ordene segun parametro
+	
+	    return(e[self.cual])
+
+    def ordenar(self,cual=0): #ordena la lista de mesas segun parametro
+        print("llegue")
+        self.cual = cual
+        if self.girar == False:
+            self.girar = True
+        else:
+            self.girar = False
+        self.mesas.sort(reverse=self.girar,key=self.orden)
+
+        #Transforma la lista para que las listbox puedan leerla
+        self.mesas_datos = []
+        for n in range(len(self.mesas[0])):
+
+            self.mesas_datos.append([])
+
+        for mesa in self.mesas:
+
+            for n,dato in enumerate(mesa):
+
+                self.mesas_datos[n].append(dato)
+
+        #si las lisboxs existen, las actualiza
+        try:
+            for i in range(self.total_datos):
+                self.listboxes[i].delete(0, "end")
+                self.listboxes[i].insert(tk.END, *self.mesas_datos[i])
+        except:
+            pass
 
 
 while True:
+
     main_menu()
 
 
