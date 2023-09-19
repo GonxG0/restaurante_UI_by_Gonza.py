@@ -11,25 +11,26 @@ import functools
 import os
 import pickle
 
-#Nuevo
 
 def salir(): #=====================================================================================================================================
     exit()
 
-class ventana_configuracion(): #=====================================================================================================================================
-    
-    def leer(self): #=====================================================================================================================================
+
+
+class ventana_configuracion(): # Ventana donde se crean las configuraciones
+
+    def leer(self): # Se leen o crean las configuraciones
         try:
             with open("Configuracion.pkl", "rb") as read_file:
                 self.configuraciones = pickle.load(read_file)
         except FileNotFoundError as error_:
             self.configuraciones =  {}
     
-    def grabar(self):  #=====================================================================================================================================
+    def grabar(self):  # Se guarda la configuracion que se esta creando
         with open("Configuracion.pkl","wb") as obj_pickle:
             pickle.dump(self.configuraciones, obj_pickle,-1)
     
-    def balance(self,dato): #=====================================================================================================================================
+    def balance(self,dato): # Se cambia la cantidad de mesas y sillas totales y actuales de la configuracion
         print(dato)
         if dato[1] == True:
             self.mesas += int(dato[0])
@@ -46,7 +47,7 @@ class ventana_configuracion(): #================================================
         self.tks["labels"]["n_sillas"].config(text=f"{self.sillas}")
         self.actualizar()
         
-    def config(self,dato): #=====================================================================================================================================
+    def config(self,dato): # Se suma o resta, sillas, mesas o cantidades de la distribucion seleccionada self.distribucion[distribucion][silla, mesa o cantidad]
         
         self.distribucion[dato[2]][dato[1]] += int(dato[0])
         
@@ -57,9 +58,9 @@ class ventana_configuracion(): #================================================
         self.tks["labels"][f"{dato[2]}{dato[1]}"].config(text= f"{self.distribucion[dato[2]][dato[1]]}")
         self.actualizar()
         
-    def borrar(self,dato): #=====================================================================================================================================
+    def borrar(self,dato): # Se encarga de borrar la distribucion seleccionada y mueve todas las demas de ser necesario, sin afectar al rendimiento
         
-        self.distribucion.pop(dato)
+        self.distribucion.pop(dato) # elimina la distribucion del registro
         
         tupla = (
                 ("botones","silla-"),   ("botones","silla+"),   ("labels","silla"),
@@ -68,15 +69,14 @@ class ventana_configuracion(): #================================================
                 ("botones","borrar"),   ("cajas","nombre")
                 )
         
-        for palabra in tupla:
-            
+        for palabra in tupla: # olvida y destruye todos los botones, etiquetas y cajas de las distribuciones
             
             self.tks[palabra[0]][f"{dato}{palabra[1]}"].place_forget()
             self.tks[palabra[0]][f"{dato}{palabra[1]}"].destroy()
         
         a = 0
         
-        for n in range(len(self.distribucion)+1):
+        for n in range(len(self.distribucion)+1): # Vuelve a dibujar todos los botones, etiquetas y cajas a excepcion del que se borro
             
             if n != dato:
                 
@@ -87,7 +87,6 @@ class ventana_configuracion(): #================================================
                     self.tks[palabra[0]][f"{n}{palabra[1]}"].place_forget()
                     self.tks[palabra[0]][f"{n}{palabra[1]}"].destroy()
                     
-                
                 self.crear_distribucion(
                                         self.distribucion[n+a]["mesa"],
                                         self.distribucion[n+a]["silla"],
@@ -99,12 +98,11 @@ class ventana_configuracion(): #================================================
                 
                 a = -1
                 
-            
-        if len(self.distribucion) == 0:
+        if len(self.distribucion) == 0: # Se deablaza el boton de nueva_configuracion
             self.tks["botones"]["nueva_configuracion"].place_forget()
             self.tks["botones"]["nueva_configuracion"].place(x = self.des,y=self.grosor*2.5+ self.des*6+(self.grosor+self.des)*(n), width= self.grosor*12+self.des*3, height = self.grosor)
         
-    def actualizar(self): #=====================================================================================================================================
+    def actualizar(self): # actualiza los datos de todas las labels, con colores y similares
         total_sillas = self.sillas
         total_mesas = self.mesas
         
@@ -167,20 +165,17 @@ class ventana_configuracion(): #================================================
         
         self.tks["labels"]["feedback"].config(text= problema, bg= color,font=("Courier", 13))
     
-    def guardar(self):
-        print("estoy aca")
+    def guardar(self): # Guarda las distribuciones en una configuracion con nombre y con un formato especifico a su vez que se destruye la ventana actual, solo permitiendo distribuciones validas
         error = False
         
         for n in self.distribucion:
             
             if n["nombre"] == "":
-                print("estoy aca3")
                 error = True
         
         if self.tks["cajas"]["nombre_configuracion"].get().capitalize() in self.configuraciones.keys() or self.tks["cajas"]["nombre_configuracion"].get().capitalize() == "":
              
             error = True
-            print("estoy aca2")
             
         for num in range(len(self.distribucion)):
             self.distribucion[num]["nombre"] = self.tks["cajas"][f"{num}nombre"].get().capitalize()
@@ -201,7 +196,7 @@ class ventana_configuracion(): #================================================
             self.ventana.destroy() 
             
     
-    def __init__(self,sillas = 0, mesas = 0): #=====================================================================================================================================
+    def __init__(self,sillas = 0, mesas = 0): # Se crea la ventana con todos los botones, etiquetas y cajas
         
         self.leer()
         
@@ -240,7 +235,7 @@ class ventana_configuracion(): #================================================
         
         tupla = (1,10,50,100)
         
-        for c,n in enumerate(tupla):
+        for c,n in enumerate(tupla): # creacion de botones de suma y resta de mesas
 
             self.tks["botones"]["m+"+str(n)] = tk.Button(text="+"+str(n),command = functools.partial(self.balance,(f"+{n}",True)))
             self.tks["botones"]["m+"+str(n)].config(bg = "antiquewhite2", fg = "black", activebackground = "antiquewhite2",activeforeground = "black")
@@ -258,7 +253,7 @@ class ventana_configuracion(): #================================================
             self.tks["botones"]["s-"+str(n)].config(bg = "antiquewhite2", fg = "black", activebackground = "antiquewhite2",activeforeground = "black")
             self.tks["botones"]["s-"+str(n)].place(x=self.des*3+self.grosor*4+c*(self.grosor+self.des)+len(tupla)*(self.grosor+self.des),y=self.des*2+self.grosor, width=self.grosor, height= (self.grosor))
             
-            
+            # Se crea la primer distribucion
             self.tks["labels"]["D_nombre"] = tk.Label(text= "Nombre", bg = "antiquewhite2" ,activebackground= "antiquewhite2")
             self.tks["labels"]["D_nombre"].place(x = self.des,y= self.des*4+self.grosor*2+self.des, width= self.grosor*3, height = self.grosor/2)
             
@@ -270,7 +265,9 @@ class ventana_configuracion(): #================================================
             
             self.tks["labels"]["D_cantidad"] = tk.Label(text= "Cantidad", bg = "antiquewhite2" ,activebackground= "antiquewhite2")
             self.tks["labels"]["D_cantidad"].place(x = self.des*4+self.grosor*9,y= self.des*4+self.grosor*2+self.des, width= self.grosor*3, height = self.grosor/2)
-            
+        
+
+        # Se crean las lineas negras para que la ui quede mas bonita
         self.tks["labels"]["linea1"] = tk.Label(bg = "black" ,activebackground= "black")
         self.tks["labels"]["linea1"].place(x = 0,y= self.des*3+self.grosor*2, width= ancho, height = self.des)
         
@@ -283,9 +280,8 @@ class ventana_configuracion(): #================================================
         self.tks["labels"]["linea4"] = tk.Label(bg = "black" ,activebackground= "black")
         self.tks["labels"]["linea4"].place(x = (self.grosor+self.des)*13+self.des*4,y= self.grosor*5.5+ self.des*11, width= ancho-(self.grosor+self.des)*13-self.des*4, height = self.des)
         
-        
-        
-        
+        # Se crean la etiqueta de errores y las etiquetas de sillas, mesas y distribuciones actuales
+
         self.tks["labels"]["feedback"] = tk.Label(bg = "antiquewhite2" ,activebackground= "antiquewhite2")
         self.tks["labels"]["feedback"].place(x = (self.grosor+self.des)*13+self.des*5,y= self.des, width= (self.des+self.grosor)*8+self.des*4, height = (self.des+self.grosor)*2-self.des*1)
         
@@ -308,6 +304,7 @@ class ventana_configuracion(): #================================================
         self.tks["labels"]["s_distribuciones"] = tk.Label(text= f"{len(self.distribucion)}",bg = "antiquewhite2" ,activebackground= "antiquewhite2")
         self.tks["labels"]["s_distribuciones"].place(x = self.des*10+self.grosor*20,y= self.grosor*2.5+ self.des*6, width= self.grosor*3, height = self.grosor)
         
+        # etiqueta y caja para poner nombre el nombre de la configuracion
         
         self.tks["labels"]["nombre_configuracion"] = tk.Label(text= f"Nombre de la configuracion",bg = "antiquewhite2" ,activebackground= "antiquewhite2")
         self.tks["labels"]["nombre_configuracion"].place(x = (self.grosor+self.des)*13+self.des*5,y= self.grosor*3.5+ self.des*9, width= self.grosor*9+self.des*2, height = self.grosor)
@@ -315,11 +312,14 @@ class ventana_configuracion(): #================================================
         self.tks["cajas"]["nombre_configuracion"] = tk.Entry(bg = "antiquewhite2",	justify="center") 
         self.tks["cajas"]["nombre_configuracion"].place(x = (self.grosor+self.des)*13+self.des*5,y=self.grosor*4.5+ self.des*10, width= self.grosor*9+self.des*2, height = self.grosor)
 
+        # Se crea el primer boton de nueva distribucion
 
         self.tks["botones"]["nueva_configuracion"] = tk.Button(text="Nueva distribucion",command = self.crear_distribucion)
         self.tks["botones"]["nueva_configuracion"].config(bg = "antiquewhite2", fg = "black", activebackground = "antiquewhite2",activeforeground = "black")
         self.tks["botones"]["nueva_configuracion"].place(x = self.des,y=self.grosor*2.5+ self.des*6+(self.grosor+self.des)*len(self.distribucion), width= self.grosor*12+self.des*3, height = self.grosor)
         
+        # boton para guardar la configuracion
+
         self.tks["botones"]["guardar"] = tk.Button(text="Guardar nueva configuracion",command = self.guardar)
         self.tks["botones"]["guardar"].config(bg = "antiquewhite2", fg = "black", activebackground = "antiquewhite2",activeforeground = "black")
         self.tks["botones"]["guardar"].place(x = (self.grosor+self.des)*13+self.des*5,y=self.grosor*5.5+ self.des*13, width= self.grosor*9+self.des*2, height = self.grosor*3+self.des*9)
@@ -328,7 +328,7 @@ class ventana_configuracion(): #================================================
         self.actualizar()
         self.ventana.mainloop()
         
-    def crear_distribucion(self,mesa=0,silla=0,cantidad=0,nombre="", numero = None):
+    def crear_distribucion(self,mesa=0,silla=0,cantidad=0,nombre="", numero = None): # se encarga de crear una fila nueva de configuracion
         if len(self.distribucion) == 7:
             return
         if numero == None:
@@ -386,36 +386,29 @@ class ventana_configuracion(): #================================================
         if len(self.distribucion) == numero+1:
             self.actualizar()
 
-# ~ print(dir([]))
-# ~ x
 
-
-# ~ while True:
-
-
-
-class main_menu():
+class main_menu(): # Menu para crear o seleccionar distribucion
     
-    def leer(self): #=====================================================================================================================================
+    def leer(self): # Se leen las configuraciones o se crean
         try:
             with open("Configuracion.pkl", "rb") as read_file:
                 self.configuraciones = pickle.load(read_file)
         except FileNotFoundError as error_:
             self.configuraciones =  {}
-    def nueva(self):
+    def nueva(self): # Vamos a la ventana de crear configuracion
         self.ventana.destroy()
         ventana_configuracion()
         
-    def conf(self):
+    def conf(self): # Vamos a la ventana de seleccion de configuraciones
         self.ventana.destroy()
         menu_configuraciones()
         
-    def __init__(self): #=====================================================================================================================================
+    def __init__(self): # Se crean los valores del menu principal y los botones
         
         self.leer()
         
         ancho = 300
-        alto = 200
+        alto = 290
         self.des = 5
         self.grosor = 200
         
@@ -432,25 +425,29 @@ class main_menu():
         
         self.tks["botones"]["cargar"] = tk.Button(text="Cargar distribucion",command = self.conf)
         self.tks["botones"]["cargar"].config(bg = "antiquewhite2", fg = "black", activebackground = "antiquewhite2",activeforeground = "black")
-        self.tks["botones"]["cargar"].place(x = self.des,y=self.des, width= ancho-self.des*2, height = alto/2-self.des*3)
+        self.tks["botones"]["cargar"].place(x = self.des,y=self.des, width= ancho-self.des*2, height = 90)
         
         self.tks["botones"]["nueva_configuracion"] = tk.Button(text="Crear distribucion",command = self.nueva)
         self.tks["botones"]["nueva_configuracion"].config(bg = "antiquewhite2", fg = "black", activebackground = "antiquewhite2",activeforeground = "black")
-        self.tks["botones"]["nueva_configuracion"].place(x = self.des,y=self.des*2+alto/2-self.des*2, width= ancho-self.des*2, height = alto/2-self.des)
+        self.tks["botones"]["nueva_configuracion"].place(x = self.des,y=self.des*2+90, width= ancho-self.des*2, height = 90)
+
+        self.tks["botones"]["salir"] = tk.Button(text="Salir",command = salir)
+        self.tks["botones"]["salir"].config(bg = "antiquewhite2", fg = "black", activebackground = "antiquewhite2",activeforeground = "black")
+        self.tks["botones"]["salir"].place(x = self.des,y=self.des*3+90*2, width= ancho-self.des*2, height = 90)
 
         self.ventana.mainloop()
 
 
-class menu_configuraciones():
+class menu_configuraciones(): # menu para seleccionar configuraciones
     
-    def leer(self): #=====================================================================================================================================
+    def leer(self): # Se leen las configuraciones
         try:
             with open("Configuracion.pkl", "rb") as read_file:
                 self.configuraciones = pickle.load(read_file)
         except FileNotFoundError as error_:
             self.configuraciones =  {}
     
-    def actualizar(self): #=====================================================================================================================================
+    def actualizar(self): # Segun la configuracion seleccionada, se muestra como es con todas sus distribuciones
         
         for o in self.lista:
             
@@ -469,7 +466,7 @@ class menu_configuraciones():
                 
                 print(a)
     
-    def __init__(self): #=====================================================================================================================================
+    def __init__(self): # Se crea la geometria de la ventana con su combo
         
         self.leer()
         
