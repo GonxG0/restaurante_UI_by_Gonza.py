@@ -11,6 +11,7 @@ import functools
 import os
 import pickle
 
+from colorama import Fore, Back, Style, init
 
 def salir(): #=====================================================================================================================================
     exit()
@@ -338,7 +339,7 @@ class ventana_configuracion(): # Ventana donde se crean las configuraciones
             self.distribucion[numero] = {"mesa":mesa,"silla":silla,"cantidad":cantidad,"nombre":nombre}
             
             
-            
+        #Todos los botones, cajas y etiquetas de una fila
         self.tks["cajas"][f"{numero}nombre"] = tk.Entry(bg = "antiquewhite2",justify="center") 
         self.tks["cajas"][f"{numero}nombre"].place(x = self.des,y=self.grosor*2.5+ self.des*6+(self.grosor+self.des)*numero, width= self.grosor*3, height = self.grosor)
         self.tks["cajas"][f"{numero}nombre"].insert(0, nombre)
@@ -498,7 +499,7 @@ class menu_configuraciones(): # menu para seleccionar configuraciones
 
         self.ventana.mainloop()
 
-    def ok(self): #=====================================================================================================================================
+    def ok(self): # Selecciona la configuracion seleccionada, para empezar a usarla
         
         if not self.combo.get() == "":
 
@@ -512,11 +513,94 @@ class menu_configuraciones(): # menu para seleccionar configuraciones
 
 
 
-class menu_aplicacion():
+class menu_aplicacion(): #Menu de la aplicacion donde se va a trabajar
 
-    def __init__(self):
+    def leer(self): # Se leen o crean las configuraciones
+        try:
+            with open("Mozos.pkl", "rb") as read_file:
+                self.mozos = pickle.load(read_file)
+        except FileNotFoundError as error_:
+            self.mozos =  {}
+    
+    def grabar(self):  # Se guarda la configuracion que se esta creando
+        with open("Mozos.pkl","wb") as obj_pickle:
+            pickle.dump(self.mozos, obj_pickle,-1)
 
-        self.ancho = 550
+
+    def ventana_mozos(self):
+
+        def agregar_mozo():
+
+            self.mozos[tks["cajas"]["numero"].get()] = ""
+            print(self.mozos)
+            self.grabar()
+            dibujar_mozo()
+
+        def quitar_mozo():
+            try:
+                del self.mozos[tks["cajas"]["numero"].get()]
+                print(self.mozos)
+                self.grabar()
+                dibujar_mozo()
+            except:
+                pass
+
+        def dibujar_mozo():
+            global m
+            if not m == {}:
+                for a in m.keys():
+
+                    m[a].place_forget()
+                    m[a].destroy()
+
+                m = {}
+
+            for n,mozo in enumerate(self.mozos.keys()):
+
+                m[mozo] = tk.Label(ventana, text= mozo, bg = "antiquewhite2" ,activebackground= "antiquewhite2")
+                m[mozo].place(x =des,y=des*2+grosor+n*(grosor+des), width= grosor*3, height = grosor)
+        global m
+        m = {}
+        self.leer()
+        print(self.mozos)
+        
+        des = 5
+        grosor = 30
+        
+        
+        tks = 	{
+                    "botones" : {},
+                    "labels" :	{}, 
+                    "cajas" :	{}
+                }
+
+        ventana = Tk()
+        ventana.title(F"Menu ({nombre})")
+        ventana.config(bg = "gray")
+
+        tks["labels"]["Nombre"] = tk.Label(ventana,text= "Nombre del mozo", bg = "antiquewhite2" ,activebackground= "antiquewhite2")
+        tks["labels"]["Nombre"].place(x =des,y=des, width= grosor*5, height = grosor)
+
+        tks["cajas"]["numero"] = tk.Entry(ventana,bg = "antiquewhite2",	justify="center") 
+        tks["cajas"]["numero"].place(x = des*2+grosor*5,y=des,width= grosor*3, height = grosor)
+
+        tks["botones"]["añadir"] = tk.Button(ventana,text="Añadir",command = agregar_mozo)
+        tks["botones"]["añadir"].config(bg = "antiquewhite2", fg = "black", activebackground = "antiquewhite2",activeforeground = "black")
+        tks["botones"]["añadir"].place(x = des*3+grosor*8,y=des,width= grosor*2, height = grosor)
+        
+        tks["botones"]["quitar"] = tk.Button(ventana,text="Quitar",command = quitar_mozo)
+        tks["botones"]["quitar"].config(bg = "antiquewhite2", fg = "black", activebackground = "antiquewhite2",activeforeground = "black")
+        tks["botones"]["quitar"].place(x = des*4+grosor*10,y=des,width= grosor*2, height = grosor)
+
+        ancho = (des*5+grosor*12)
+        alto = 400
+        x_pos_ventana2 = self.ventana.winfo_x() - ancho -10  # Ajusta el espacio entre las ventanas
+        y_pos_ventana2 = self.ventana.winfo_y()
+        ventana.geometry(f"{ancho}x{alto}+{x_pos_ventana2}+{y_pos_ventana2}")
+        dibujar_mozo()
+    def __init__(self): # Geometria, botones, etiquetas y listboxes
+
+        self.ancho = 575
         self.alto = 400
         self.des = 5
         self.grosor = 40
@@ -535,6 +619,8 @@ class menu_aplicacion():
         self.ventana.title(F"Menu ({nombre})")
         self.ventana.config(bg = "gray")
         self.ventana.geometry(f"{self.ancho}x{self.alto}")
+        
+        #creacion de botones principales del menu
 
         self.botones = 0
 
@@ -542,7 +628,7 @@ class menu_aplicacion():
         self.tks["botones"]["Mesas"].config(bg = "antiquewhite2", fg = "black", activebackground = "antiquewhite2",activeforeground = "black")
         self.tks["botones"]["Mesas"].place(x = self.des, y = self.des+(self.des+self.grosor)*self.botones, width = 120,height= self.grosor)
         self.botones += 1
-        self.tks["botones"]["Mozos"] = tk.Button(self.ventana,text="Mozos",command = "")
+        self.tks["botones"]["Mozos"] = tk.Button(self.ventana,text="Mozos",command = self.ventana_mozos)
         self.tks["botones"]["Mozos"].config(bg = "antiquewhite2", fg = "black", activebackground = "antiquewhite2",activeforeground = "black")
         self.tks["botones"]["Mozos"].place(x = self.des, y = self.des+(self.des+self.grosor)*self.botones, width = 120,height= self.grosor)
         self.botones += 1
@@ -564,14 +650,353 @@ class menu_aplicacion():
        
         self.girar = True
 
-        self.crear_listboxes()
-    
+        self.crear_listboxes() # creamos las listboxes segun la cantidad de datos que tengamos
+
+        # Se crea la scrollbar que mueve las listboxes
+
         self.scrollbar.config(command=lambda *args: [self.listbox.yview(*args) for self.listbox in self.listboxes])
         #self.scrollbar.bind("<MouseWheel>", bloquear_scroll)
         self.scrollbar.place(x=120+ self.des*3+self.recorrido, y=self.des, height=(self.des+self.grosor)*(self.botones+1)-self.des)
         #self.scrollbar.place(x=120+ self.des*3+self.recorrido, y=self.des*2+(self.grosor-10), height=(self.des+self.grosor)*self.botones-self.des+10)
 
+        #Boton que nos permite editar valores especificos de las listboxes de manera rapida
+
+        self.tks["botones"]["editar"] = tk.Button(self.ventana,text="Editar",command = self.editar)
+        self.tks["botones"]["editar"].config(bg = "antiquewhite2", fg = "black", activebackground = "antiquewhite2",activeforeground = "black")
+        self.tks["botones"]["editar"].place(x = 120+ self.des*4+self.recorrido+20, y = self.des, width = self.grosor,height= self.grosor)
+       
         self.ventana.mainloop()
+
+    def editar(self): # Segun la listbox seleccionada se haran distintos protocolos para editar el dato especifico
+        self.valido = False
+        def ok_0(): # Funcion de validacion de protocolo 0(editar numero de mesa) 
+            self.cambio = ""
+            try:
+                numero_nuevo = int(tks["cajas"]["numero"].get())
+                
+
+                if numero_nuevo in self.mesas_datos[self.number]:
+                    tks["labels"]["feedback"].config(text = "Numero ya utilizado, ambas mesas cambiaran su numero")
+                    tks["cajas"]["numero"].config(bg = "yellow1")
+                    self.cambio = numero_nuevo
+                    self.valido = True
+                    print(numero_nuevo)
+                    print(self.dato)
+                    if numero_nuevo == self.dato[0]+1:
+                        tks["labels"]["feedback"].config(text = "La mesa tiene ese numero")
+                        tks["cajas"]["numero"].config(bg = "yellow1")
+                        self.valido = True
+                else:
+                    tks["labels"]["feedback"].config(text = "Numero Valido")
+                    tks["cajas"]["numero"].config(bg = "green2")
+                    self.valido = True
+            except:
+                tks["cajas"]["numero"].config(bg = "red3")
+                tks["labels"]["feedback"].config(text = "Por favor, ingresa un numero")
+
+        def val_0(): # Funcion de cambio de protocolo 0(editar numero de mesa) 
+            print("1",self.valido)
+            if self.valido == True or self.tipo[self.number] == "sillas" or self.tipo[self.number] == "mesas":
+                
+                if not self.cambio == "":
+                    index = self.mesas_datos[self.number].index(self.cambio)
+                    self.mesas[index][self.number] = self.mesas[self.dato[0]][self.number]
+
+                print("#"*80)
+                print(self.mesas)
+                print(self.number)
+                print(self.dato)
+                if self.tipo[self.number] in ("N°"):
+                    
+                    
+                    self.mesas[self.dato[0]][self.number] = int(tks["cajas"]["numero"].get())
+
+                elif self.tipo[self.number] in ("tipo"):
+                    self.mesas[self.dato[0]][self.number] = tks["cajas"]["numero"].get()
+                elif self.tipo[self.number] in ("sillas","mesas"):
+                    print("2")
+                    try:
+                        print("3")
+                        numero_nuevo = int(tks["cajas"]["numero"].get())
+                        self.mesas[self.dato[0]][self.number] = int(tks["cajas"]["numero"].get())
+                    except:
+                        tks["cajas"]["numero"].config(bg = "red3")
+                        tks["labels"]["feedback"].config(text = "Por favor, ingresa un numero")
+                        return
+
+
+                self.ordenar(orde=False)
+                ventana.destroy()
+
+
+        for self.number,lb in enumerate(self.listboxes): # Se crea la ventana y se verifica que listbox se selecciono para seguir con un protocolo
+
+            if not lb.curselection() == ():
+
+                if self.tipo[self.number] == "N°": #protocolo de numero 0(editar numero de mesa)
+                    
+                    self.dato = lb.curselection() #dato seleccionado
+
+                    # Creacion de ventana, botones, calas y etiquetas
+
+                    des = 5
+                    grosor = 40
+                    ancho = des*5+grosor*11
+                    alto = grosor+des*3+int(grosor/2)
+                    
+                    tks = 	{
+                                "botones" : {},
+                                "labels" :	{}, 
+                                "cajas" :	{}
+                            }
+
+                    print(self.dato)
+
+                    
+                    
+                    ventana = Tk()
+                    ventana.title(F"Menu ({nombre})")
+                    ventana.config(bg = "gray")
+                    x_pos_ventana2 = self.ventana.winfo_x() + self.ventana.winfo_width() + 10  # Ajusta el espacio entre las ventanas
+                    y_pos_ventana2 = self.ventana.winfo_y()
+                    ventana.geometry(f"{ancho}x{alto}+{x_pos_ventana2}+{y_pos_ventana2}")
+
+                    print(self.tipo[self.number])  
+                    
+                    tks["labels"]["numero"] = tk.Label(ventana,text= "Numero de Mesa", bg = "antiquewhite2" ,activebackground= "antiquewhite2")
+                    tks["labels"]["numero"].place(x =des,y=des, width= grosor*3, height = grosor)
+        
+                    tks["cajas"]["numero"] = tk.Entry(ventana,bg = "antiquewhite2",	justify="center") 
+                    tks["cajas"]["numero"].place(x = des*2+grosor*3,y=des,width= grosor*3, height = self.grosor)
+
+                    tks["botones"]["Comprobar"] = tk.Button(ventana,text="Comprobar",command = ok_0)
+                    tks["botones"]["Comprobar"].config(bg = "antiquewhite2", fg = "black", activebackground = "antiquewhite2",activeforeground = "black")
+                    tks["botones"]["Comprobar"].place(x = des*3+grosor*6,y=des,width= grosor*3, height = self.grosor)
+
+                    tks["labels"]["feedback"] = tk.Label(ventana,text= "Numero de Mesa", bg = "antiquewhite2" ,activebackground= "antiquewhite2")
+                    tks["labels"]["feedback"].place(x =des,y=des*2+grosor, width= des*3+grosor*11, height = grosor/2)
+
+                    tks["botones"]["cambiar"] = tk.Button(ventana,text="Editar",command = val_0)
+                    tks["botones"]["cambiar"].config(bg = "antiquewhite2", fg = "black", activebackground = "antiquewhite2",activeforeground = "black")
+                    tks["botones"]["cambiar"].place(x = des*4+grosor*9,y=des,width= grosor*2, height = self.grosor)
+
+                elif self.tipo[self.number] == "tipo": #protocolo de nombre 1(editar nombre de mesa)
+
+                    self.dato = lb.curselection() #dato seleccionado
+
+                    # Creacion de ventana, botones, calas y etiquetas
+                    
+                    des = 5
+                    grosor = 40
+                    ancho = des*4+grosor*8
+                    alto = grosor+des*2
+                    
+                    tks = 	{
+                                "botones" : {},
+                                "labels" :	{}, 
+                                "cajas" :	{}
+                            }
+
+                    print("#"*80)
+                    print(self.dato)
+                    
+                    self.cambio = ""
+                    self.valido = True
+
+                    ventana = Tk()
+                    ventana.title(F"Menu ({nombre})")
+                    ventana.config(bg = "gray")
+                    x_pos_ventana2 = self.ventana.winfo_x() + self.ventana.winfo_width() + 10  # Ajusta el espacio entre las ventanas
+                    y_pos_ventana2 = self.ventana.winfo_y()
+                    ventana.geometry(f"{ancho}x{alto}+{x_pos_ventana2}+{y_pos_ventana2}")
+
+                    tks["labels"]["Nombre"] = tk.Label(ventana,text= "Nombre de mesa", bg = "antiquewhite2" ,activebackground= "antiquewhite2")
+                    tks["labels"]["Nombre"].place(x =des,y=des, width= grosor*3, height = grosor)
+        
+                    tks["cajas"]["numero"] = tk.Entry(ventana,bg = "antiquewhite2",	justify="center") 
+                    tks["cajas"]["numero"].insert(0,str(self.mesas[self.dato[0]][self.number]))
+                    tks["cajas"]["numero"].place(x = des*2+grosor*3,y=des,width= grosor*3, height = self.grosor)
+
+                    tks["botones"]["cambiar"] = tk.Button(ventana,text="Editar",command = val_0)
+                    tks["botones"]["cambiar"].config(bg = "antiquewhite2", fg = "black", activebackground = "antiquewhite2",activeforeground = "black")
+                    tks["botones"]["cambiar"].place(x = des*3+grosor*6,y=des,width= grosor*2, height = self.grosor)
+
+                elif self.tipo[self.number] == "sillas": #protocolo de numero 0(editar numero de mesa)
+                    
+                    self.dato = lb.curselection() #dato seleccionado
+
+                    # Creacion de ventana, botones, calas y etiquetas
+
+                    des = 5
+                    grosor = 40
+                    ancho = des*5+grosor*8
+                    alto = grosor+des*3+int(grosor/2)
+                    
+                    tks = 	{
+                                "botones" : {},
+                                "labels" :	{}, 
+                                "cajas" :	{}
+                            }
+
+                    print(self.dato)
+                    
+                    self.valido == True
+                    self.cambio = ""
+
+                    ventana = Tk()
+                    ventana.title(F"Menu ({nombre})")
+                    ventana.config(bg = "gray")
+                    x_pos_ventana2 = self.ventana.winfo_x() + self.ventana.winfo_width() + 10  # Ajusta el espacio entre las ventanas
+                    y_pos_ventana2 = self.ventana.winfo_y()
+                    ventana.geometry(f"{ancho}x{alto}+{x_pos_ventana2}+{y_pos_ventana2}")
+
+                    print(self.tipo[self.number])  
+                    
+                    tks["labels"]["numero"] = tk.Label(ventana,text= "Numero de sillas", bg = "antiquewhite2" ,activebackground= "antiquewhite2")
+                    tks["labels"]["numero"].place(x =des,y=des, width= grosor*3, height = grosor)
+        
+                    tks["cajas"]["numero"] = tk.Entry(ventana,bg = "antiquewhite2",	justify="center") 
+                    tks["cajas"]["numero"].place(x = des*2+grosor*3,y=des,width= grosor*3, height = self.grosor)
+
+                    tks["labels"]["feedback"] = tk.Label(ventana,text= "Numero de sillas", bg = "antiquewhite2" ,activebackground= "antiquewhite2")
+                    tks["labels"]["feedback"].place(x =des,y=des*2+grosor, width= des*3+grosor*8, height = grosor/2)
+
+                    tks["botones"]["cambiar"] = tk.Button(ventana,text="Editar",command = val_0)
+                    tks["botones"]["cambiar"].config(bg = "antiquewhite2", fg = "black", activebackground = "antiquewhite2",activeforeground = "black")
+                    tks["botones"]["cambiar"].place(x = des*4+grosor*6,y=des,width= grosor*2, height = self.grosor)
+
+                elif self.tipo[self.number] == "mesas": #protocolo de numero 0(editar numero de mesa)
+                    
+                    self.dato = lb.curselection() #dato seleccionado
+
+                    # Creacion de ventana, botones, calas y etiquetas
+
+                    des = 5
+                    grosor = 40
+                    ancho = des*5+grosor*8
+                    alto = grosor+des*3+int(grosor/2)
+                    
+                    tks = 	{
+                                "botones" : {},
+                                "labels" :	{}, 
+                                "cajas" :	{}
+                            }
+
+                    print(self.dato)
+                    
+                    self.valido == True
+                    self.cambio = ""
+
+                    ventana = Tk()
+                    ventana.title(F"Menu ({nombre})")
+                    ventana.config(bg = "gray")
+                    x_pos_ventana2 = self.ventana.winfo_x() + self.ventana.winfo_width() + 10  # Ajusta el espacio entre las ventanas
+                    y_pos_ventana2 = self.ventana.winfo_y()
+                    ventana.geometry(f"{ancho}x{alto}+{x_pos_ventana2}+{y_pos_ventana2}")
+
+                    print(self.tipo[self.number])  
+                    
+                    tks["labels"]["numero"] = tk.Label(ventana,text= "Numero de Mesas", bg = "antiquewhite2" ,activebackground= "antiquewhite2")
+                    tks["labels"]["numero"].place(x =des,y=des, width= grosor*3, height = grosor)
+        
+                    tks["cajas"]["numero"] = tk.Entry(ventana,bg = "antiquewhite2",	justify="center") 
+                    tks["cajas"]["numero"].place(x = des*2+grosor*3,y=des,width= grosor*3, height = self.grosor)
+
+                    tks["labels"]["feedback"] = tk.Label(ventana,text= "Numero de Mesas", bg = "antiquewhite2" ,activebackground= "antiquewhite2")
+                    tks["labels"]["feedback"].place(x =des,y=des*2+grosor, width= des*3+grosor*8, height = grosor/2)
+
+                    tks["botones"]["cambiar"] = tk.Button(ventana,text="Editar",command = val_0)
+                    tks["botones"]["cambiar"].config(bg = "antiquewhite2", fg = "black", activebackground = "antiquewhite2",activeforeground = "black")
+                    tks["botones"]["cambiar"].place(x = des*4+grosor*6,y=des,width= grosor*2, height = self.grosor)
+
+                    
+                elif self.tipo[self.number] == "estado": #protocolo de numero 0(editar numero de mesa)
+                    
+                    self.dato = lb.curselection() #dato seleccionado
+
+                    # Creacion de ventana, botones, cajas y etiquetas
+                    palabras = ("Libre", "Ocupada", "Reservada")
+
+                    des = 5
+                    grosor = 40
+                    ancho = grosor*5+des*2
+                    alto = des+len(palabras)*(grosor+des)
+                    
+                    tks = 	{
+                                "botones" : {},
+                                "labels" :	{}, 
+                                "cajas" :	{}
+                            }
+
+                    print(self.dato)
+                    
+                    self.valido == True
+                    self.cambio = ""
+
+                    ventana = Tk()
+                    ventana.title(F"Menu ({nombre})")
+                    ventana.config(bg = "gray")
+                    x_pos_ventana2 = self.ventana.winfo_x() + self.ventana.winfo_width() + 10  # Ajusta el espacio entre las ventanas
+                    y_pos_ventana2 = self.ventana.winfo_y()
+                    ventana.geometry(f"{ancho}x{alto}+{x_pos_ventana2}+{y_pos_ventana2}")
+
+                    print(self.tipo[self.number])  
+                    
+                    def estado(est):
+                        print(est)
+                        self.mesas[self.dato[0]][self.number] = est
+                        self.ordenar(orde=False)
+                        ventana.destroy()
+
+                    for n,palabra in enumerate(palabras):
+
+                        tks["botones"][palabra] = tk.Button(ventana,text=palabra,command = functools.partial(estado,palabra))
+                        tks["botones"][palabra].config(bg = "antiquewhite2", fg = "black", activebackground = "antiquewhite2",activeforeground = "black")
+                        tks["botones"][palabra].place(x = des,y=des+n*(des+grosor),width= grosor*5, height = self.grosor)
+
+                elif self.tipo[self.number] == "mozo": #protocolo de numero 0(editar numero de mesa)
+                    
+                    def ok():
+                        if combo.get() == "":
+                            self.mesas[self.dato[0]][self.number] = "- - -"
+                        else:
+                            self.mesas[self.dato[0]][self.number] = combo.get()
+                        self.ordenar(orde=False)
+                        ventana.destroy()
+
+                    self.dato = lb.curselection() #dato seleccionado
+
+                    # Creacion de ventana, botones, cajas y etiquetas
+                    self.leer()
+                    des = 5
+                    grosor = 40
+                    ancho = grosor*4+des*2
+                    alto = 400
+                    
+                    tks = 	{
+                                "botones" : {},
+                                "labels" :	{}, 
+                                "cajas" :	{}
+                            }
+
+                    print(self.dato)
+
+                    ventana = Tk()
+                    ventana.title(F"Menu ({nombre})")
+                    ventana.config(bg = "gray")
+                    x_pos_ventana2 = self.ventana.winfo_x() + self.ventana.winfo_width() + 10  # Ajusta el espacio entre las ventanas
+                    y_pos_ventana2 = self.ventana.winfo_y()
+                    ventana.geometry(f"{ancho}x{alto}+{x_pos_ventana2}+{y_pos_ventana2}")
+
+                    combo = ttk.Combobox(ventana,values=list(self.mozos.keys()), state='readonly')
+                    combo.place(x=des, y=des*2+grosor, width =ancho-des*2, height=grosor/2)
+
+                    tks["botones"]["OK"] = tk.Button(ventana,text="OK",command = ok)
+                    tks["botones"]["OK"].config(bg = "antiquewhite2", fg = "black", activebackground = "antiquewhite2",activeforeground = "black")
+                    tks["botones"]["OK"].place(x = des, y = des, width = ancho-des*2,height= grosor)
+
+                ventana.mainloop()
+
 
     def crear_listboxes(self): # Crea las listboxes, los botones para ordenarlas y la scrolbar
 
@@ -580,7 +1005,7 @@ class menu_aplicacion():
         for dis in distribucion:
             for mesa in range(int(dis["cantidad"])):
 
-                self.mesas.append([numero,dis["nombre"],dis["silla"],dis["mesa"],"Libre", "Juan"])
+                self.mesas.append([numero,dis["nombre"],dis["silla"],dis["mesa"],"Libre", "- - -"])
                 numero += 1
         self.total_datos = len(self.mesas[0]) 
 
@@ -591,8 +1016,8 @@ class menu_aplicacion():
         self.scrollbar = ttk.Scrollbar(self.ventana,orient=tk.VERTICAL)
         
         # Se establecen los datos que van a haber y sus tamaños (se pueden agregar datos perfectamente)
-        tipo = ("N°","tipo","sillas","mesas","estado","mozo")
-        tamaño = (30,100,50,50,50,70)
+        self.tipo = ("N°","tipo","sillas","mesas","estado","mozo")
+        tamaño = (30,100,50,50,70,70)
         self.recorrido = 0
         self.listboxes = []
         
@@ -611,9 +1036,9 @@ class menu_aplicacion():
             self.listboxes.append(self.listbox)
             
 
-            self.tks["botones"][f"orden_{tipo[i]}"] = tk.Button(self.ventana,text=tipo[i].capitalize(),command = functools.partial(self.ordenar,i))
-            self.tks["botones"][f"orden_{tipo[i]}"].config(bg = "chartreuse3", fg = "black", activebackground = "chartreuse3",activeforeground = "black")
-            self.tks["botones"][f"orden_{tipo[i]}"].place(x = 120+ self.des*2+self.recorrido, y = self.des, width = tamaño[i],height= (self.grosor-10))
+            self.tks["botones"][f"orden_{self.tipo[i]}"] = tk.Button(self.ventana,text=self.tipo[i].capitalize(),command = functools.partial(self.ordenar,i))
+            self.tks["botones"][f"orden_{self.tipo[i]}"].config(bg = "chartreuse3", fg = "black", activebackground = "chartreuse3",activeforeground = "black")
+            self.tks["botones"][f"orden_{self.tipo[i]}"].place(x = 120+ self.des*2+self.recorrido, y = self.des, width = tamaño[i],height= (self.grosor-10))
 
             self.recorrido += tamaño[i]
             
@@ -621,14 +1046,15 @@ class menu_aplicacion():
 	
 	    return(e[self.cual])
 
-    def ordenar(self,cual=0): #ordena la lista de mesas segun parametro
+    def ordenar(self,cual=0,orde=True): #ordena la lista de mesas segun parametro
         print("llegue")
-        self.cual = cual
-        if self.girar == False:
-            self.girar = True
-        else:
-            self.girar = False
-        self.mesas.sort(reverse=self.girar,key=self.orden)
+        if orde:
+            self.cual = cual
+            if self.girar == False:
+                self.girar = True
+            else:
+                self.girar = False
+            self.mesas.sort(reverse=self.girar,key=self.orden)
 
         #Transforma la lista para que las listbox puedan leerla
         self.mesas_datos = []
